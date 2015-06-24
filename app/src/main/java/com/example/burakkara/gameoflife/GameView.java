@@ -7,18 +7,19 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 /**
  * Author: Burak Kara on 24/06/15.
  */
 public class GameView extends View {
 
-    private int width;
-    private int height;
+    private float width;
+    private float height;
 
-    private int edge_length = 0;
+    private float edge_length;
 
-    private final int GRID_COUNT = 20;
+    private final int GRID_COUNT = 10;
 
     private Paint paintStroke;
     private Paint paintFill;
@@ -66,8 +67,8 @@ public class GameView extends View {
         width = getMeasuredWidth();
         height = getMeasuredHeight();
 
-        int xUnitLength = width / GRID_COUNT;
-        int yUnitLength = height / GRID_COUNT;
+        float xUnitLength = width / GRID_COUNT;
+        float yUnitLength = height / GRID_COUNT;
 
         edge_length = xUnitLength < yUnitLength ? xUnitLength : yUnitLength;
 
@@ -75,10 +76,10 @@ public class GameView extends View {
         for (int i = 0; i < GRID_COUNT; i++) {
             for (int y = 0; y < GRID_COUNT; y++) {
 
-                int left = i * edge_length;
-                int top = y * edge_length;
-                int right = (i + 1) * edge_length;
-                int bottom = (y + 1) * edge_length;
+                float left = i * edge_length;
+                float top = y * edge_length;
+                float right = (i + 1) * edge_length;
+                float bottom = (y + 1) * edge_length;
 
                 canvas.drawRect(left, top,
                         right, bottom, paintStroke);
@@ -95,6 +96,19 @@ public class GameView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        float screenX = event.getX();
+        float screenY = event.getY();
+        int viewX = (int) (screenX - getLeft());
+        int viewY = (int) (screenY - getTop());
+
+        int boxNo = getBoxNo(viewX, viewY);
+        Toast.makeText(getContext(), String.valueOf(boxNo), Toast.LENGTH_SHORT).show();
         return super.onTouchEvent(event);
+    }
+
+    private int getBoxNo(int viewX, int viewY) {
+        return (((int)(viewX / edge_length) + 1) +
+                ((int)(viewY / edge_length)) * GRID_COUNT);
+
     }
 }
