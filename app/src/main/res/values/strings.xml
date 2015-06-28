@@ -2,4 +2,8 @@
     <string name="app_name">Game Of Life</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
+    <string name="stop">Stop</string>
+    <string name="run">Run</string>
+    <string name="clear">Clear</string>
+    <string name="step">Step</string>
 </resources>
