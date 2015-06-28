@@ -18,13 +18,13 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
     private GameView gameView;
     private Handler periodicGameUpdateHandler;
 
-     int[][] cells1 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
-    int[][] cells2 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
+    int[][] cells1;
+    int[][] cells2;
 
     private boolean isFirstArrayBuffer = false;
 
-    private boolean[][] blockState = new boolean[GameView.BLOCK_COUNT][GameView.BLOCK_COUNT];//if there is change true
-    private boolean[][] blockStateTemp = new boolean[GameView.BLOCK_COUNT][GameView.BLOCK_COUNT];//if there is change true
+    private boolean[][] blockState;//if there is change true
+    private boolean[][] blockStateTemp;//if there is change true
 
     private ThreadManager manager;
 
@@ -46,19 +46,6 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         manager = ThreadManager.getInstance();
     }
 
-    private void createGlider() {
-        cells1[5][1] = 1;
-        cells1[5][2] = 1;
-        cells1[5][3] = 1;
-        cells1[6][3] = 1;
-        cells1[6][4] = 1;
-        cells1[5][4] = 1;
-        cells1[4][3] = 1;
-        cells1[3][2] = 1;
-        blockState[1][0] = true;
-        blockState[1][1] = true;
-    }
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -67,9 +54,18 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         findViews(view);
         setListeners();
 
+        initArrays();
+
         gameView.setSeedData(cells1, blockState);
         gameView.invalidate();
         return view;
+    }
+
+    private void initArrays() {
+        cells1 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
+        cells2 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
+        blockState = new boolean[GameView.BLOCK_COUNT][GameView.BLOCK_COUNT];
+        blockStateTemp = new boolean[GameView.BLOCK_COUNT][GameView.BLOCK_COUNT];
     }
 
     private void setListeners() {

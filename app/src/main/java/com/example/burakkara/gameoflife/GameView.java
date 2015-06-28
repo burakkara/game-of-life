@@ -1,6 +1,7 @@
 package com.example.burakkara.gameoflife;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -16,25 +17,24 @@ public class GameView extends View {
 
     private static final String TAG = GameView.class.getSimpleName();
 
+    private static final int GRID_EDGE_DEFAULT_LENGTH = 20;
+    private static final int BLOCK_EDGE_DEFAULT_LENGTH = 3;
+
     private float width;
     private float height;
 
     private float edge_length;
 
-    public static final int GRID_EDGE_LENGTH = 10;
-    public static final int BLOCK_EDGE_LENGTH = 3;
-    public static final int BLOCK_COUNT = (int) Math.ceil(GRID_EDGE_LENGTH / BLOCK_EDGE_LENGTH);
+    public static int GRID_EDGE_LENGTH;
+    public static int BLOCK_EDGE_LENGTH;
+
+    public static int BLOCK_COUNT;
 
     private Paint paintStroke;
     private Paint paintFill;
 
-    private int[][] cells = new int[GRID_EDGE_LENGTH][GRID_EDGE_LENGTH];
-    private boolean[][] blockState = new boolean[BLOCK_COUNT][BLOCK_COUNT];
-
-
-    public GameView(Context context) {
-        this(context, null);
-    }
+    private int[][] cells;
+    private boolean[][] blockState;
 
     public GameView(Context context, AttributeSet attrs) {
 
@@ -45,8 +45,30 @@ public class GameView extends View {
     public GameView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
 
+        init(attrs);
+
+        BLOCK_COUNT = (int) Math.ceil(GRID_EDGE_LENGTH / BLOCK_EDGE_LENGTH);
+        cells = new int[GRID_EDGE_LENGTH][GRID_EDGE_LENGTH];
+        blockState = new boolean[BLOCK_COUNT][BLOCK_COUNT];
+
         setPaints();
 
+    }
+
+    private void init(AttributeSet attrs) {
+        if (attrs != null && !isInEditMode()) {
+
+            final TypedArray a = getContext().obtainStyledAttributes(attrs, R.styleable.GameView);
+            try {
+                BLOCK_EDGE_LENGTH = a.getInt(R.styleable.GameView_blockEdgeLength,
+                        BLOCK_EDGE_DEFAULT_LENGTH);
+                GRID_EDGE_LENGTH = a.getInt(R.styleable.GameView_gridEdgeLength,
+                        GRID_EDGE_DEFAULT_LENGTH);
+            } finally {
+                a.recycle();
+            }
+
+        }
     }
 
     @Override
