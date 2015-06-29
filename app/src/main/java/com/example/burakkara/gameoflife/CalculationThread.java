@@ -5,8 +5,8 @@ package com.example.burakkara.gameoflife;
  */
 public class CalculationThread extends Thread {
 
-    private int[][] cells = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
-    private int[][] temp = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
+    private int[][] cells;
+    private int[][] temp;
 
     private int row;
     private int column;
@@ -37,7 +37,7 @@ public class CalculationThread extends Thread {
         for (int i = row; i < row + GameView.BLOCK_EDGE_LENGTH; i++) {
             for (int j = column; j < column + GameView.BLOCK_EDGE_LENGTH; j++) {
 
-                int sum = getSumOfSurroundingCells(i, j);
+                int sum = getSumOfBlock(i, j);
                 if (sum == 3) {
                     if (cells[i][j] == 0) {
                         temp[i][j] = 1;
@@ -56,54 +56,60 @@ public class CalculationThread extends Thread {
         }
     }
 
-    public int getSumOfSurroundingCells(int i, int j) {
+    /**
+     * Gets sum of all the cells in a block.
+     *
+     * @param rowIndex    Row index of central cell.
+     * @param columnIndex Column index of central cell.
+     * @return Sum of block.
+     */
+    public int getSumOfBlock(int rowIndex, int columnIndex) {
 
-        int left = j - 1;
-        int right = j + 1;
-        int up = i - 1;
-        int down = i + 1;
+        int left = columnIndex - 1;
+        int right = columnIndex + 1;
+        int up = rowIndex - 1;
+        int down = rowIndex + 1;
 
-        boolean leftEdge = j == 0;
-        boolean rightEdge = j == GameView.GRID_EDGE_LENGTH - 1;
-        boolean ceilEdge = i == 0;
-        boolean bottomEdge = i == GameView.GRID_EDGE_LENGTH - 1;
+        boolean isCellOnLeftEdge = columnIndex == 0;
+        boolean isCellOnRightEdge = columnIndex == GameView.GRID_EDGE_LENGTH - 1;
+        boolean isCellOnCeilEdge = rowIndex == 0;
+        boolean isCellOnBottomEdge = rowIndex == GameView.GRID_EDGE_LENGTH - 1;
 
-        if (leftEdge && ceilEdge) {
-            return cells[i][j] + cells[i][right]//middle row
-                    + cells[down][(j)] + cells[(down)][(right)];//bottom row
+        if (isCellOnLeftEdge && isCellOnCeilEdge) {
+            return cells[rowIndex][columnIndex] + cells[rowIndex][right]//middle row
+                    + cells[down][(columnIndex)] + cells[(down)][(right)];//bottom row
 
-        } else if (leftEdge && bottomEdge) {
-            return cells[i][j] + cells[i][right]//middle row
-                    + cells[up][i] + cells[(up)][(right)];//upper row
+        } else if (isCellOnLeftEdge && isCellOnBottomEdge) {
+            return cells[rowIndex][columnIndex] + cells[rowIndex][right]//middle row
+                    + cells[up][rowIndex] + cells[(up)][(right)];//upper row
 
-        } else if (rightEdge && ceilEdge) {
-            return cells[(i)][left] + cells[i][j] //middle row
-                    + cells[(down)][(left)] + cells[down][(j)];//bottom row
+        } else if (isCellOnRightEdge && isCellOnCeilEdge) {
+            return cells[(rowIndex)][left] + cells[rowIndex][columnIndex] //middle row
+                    + cells[(down)][(left)] + cells[down][(columnIndex)];//bottom row
 
-        } else if (rightEdge && bottomEdge) {
-            return cells[(i)][left] + cells[i][j] //middle row
-                    + cells[(up)][(left)] + cells[up][i];//upper row
+        } else if (isCellOnRightEdge && isCellOnBottomEdge) {
+            return cells[(rowIndex)][left] + cells[rowIndex][columnIndex] //middle row
+                    + cells[(up)][(left)] + cells[up][rowIndex];//upper row
 
-        } else if (leftEdge) {//be careful
-            return cells[i][j] + cells[i][right]//middle row
-                    + cells[up][j] + cells[(up)][(right)]//upper row
-                    + cells[down][(j)] + cells[(down)][(right)];//bottom row
+        } else if (isCellOnLeftEdge) {
+            return cells[rowIndex][columnIndex] + cells[rowIndex][right]//middle row
+                    + cells[up][columnIndex] + cells[(up)][(right)]//upper row
+                    + cells[down][(columnIndex)] + cells[(down)][(right)];//bottom row
+        } else if (isCellOnRightEdge) {
+            return cells[(rowIndex)][left] + cells[rowIndex][columnIndex] //middle row
+                    + cells[(up)][(left)] + cells[up][rowIndex]//upper row
+                    + cells[(down)][(left)] + cells[down][(columnIndex)];//bottom row
+        } else if (isCellOnCeilEdge) {
+            return cells[(rowIndex)][left] + cells[rowIndex][columnIndex] + cells[rowIndex][right]//middle row
+                    + cells[(down)][(left)] + cells[down][(columnIndex)] + cells[(down)][(right)];//bottom row
+        } else if (isCellOnBottomEdge) {
+            return cells[(rowIndex)][left] + cells[rowIndex][columnIndex] + cells[rowIndex][right]//middle row
+                    + cells[(up)][(left)] + cells[up][rowIndex] + cells[(up)][(right)];//upper row
 
-        } else if (rightEdge) {
-            return cells[(i)][left] + cells[i][j] //middle row
-                    + cells[(up)][(left)] + cells[up][i]//upper row
-                    + cells[(down)][(left)] + cells[down][(j)];//bottom row
-
-        } else if (ceilEdge) {
-            return cells[(i)][left] + cells[i][j] + cells[i][right]//middle row
-                    + cells[(down)][(left)] + cells[down][(j)] + cells[(down)][(right)];//bottom row
-        } else if (bottomEdge) {
-            return cells[(i)][left] + cells[i][j] + cells[i][right]//middle row
-                    + cells[(up)][(left)] + cells[up][i] + cells[(up)][(right)];//upper row
         } else {
-            return cells[(i)][left] + cells[i][j] + cells[i][right]//middle row
-                    + cells[(up)][(left)] + cells[up][j] + cells[(up)][(right)]//upper row
-                    + cells[(down)][(left)] + cells[down][(j)] + cells[(down)][(right)];//bottom row
+            return cells[(rowIndex)][left] + cells[rowIndex][columnIndex] + cells[rowIndex][right]//middle row
+                    + cells[(up)][(left)] + cells[up][columnIndex] + cells[(up)][(right)]//upper row
+                    + cells[(down)][(left)] + cells[down][(columnIndex)] + cells[(down)][(right)];//bottom row
 
         }
     }

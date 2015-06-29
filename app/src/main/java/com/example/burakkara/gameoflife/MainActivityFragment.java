@@ -14,7 +14,8 @@ import android.widget.Button;
 public class MainActivityFragment extends Fragment implements View.OnClickListener {
 
     private static final int MILLISECONDS_TILL_UPDATE = 400;
-    private static final long STEP_DELAY = 200;
+    private static final int STEP_DELAY = 200;
+
     private GameView gameView;
     private Handler periodicGameUpdateHandler;
 
@@ -23,7 +24,7 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
 
     private boolean isFirstArrayBuffer = false;
 
-    private boolean[][] blockState;//if there is change true
+    private boolean[][] blockState;// true, if there is change
     private boolean[][] blockStateTemp;//if there is change true
 
     private ThreadManager manager;
@@ -108,6 +109,7 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
 
     private void step() {
         cells1 = gameView.getCells();
+        isFirstArrayBuffer = false;
         calculateNextStep();
         periodicGameUpdateHandler.postDelayed(gameUpdateRunnable, STEP_DELAY);
     }
@@ -151,12 +153,8 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
 
         if (isFirstArrayBuffer) {
             cells1 = Util.deepCopy(cells2);
-            //System.arraycopy(cells2, 0, cells1, 0, cells1.length);
-            //cells1 = cells2;
         } else {
             cells2 = Util.deepCopy(cells1);
-            //System.arraycopy(cells1, 0, cells2, 0, cells1.length);
-            //cells2 = cells1;
         }
 
         blockStateTemp = blockState;
@@ -173,7 +171,7 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         }
         isFirstArrayBuffer = !isFirstArrayBuffer;
 
-        //manager.waitForAll();
+        manager.waitForAll();
     }
 
     @Override

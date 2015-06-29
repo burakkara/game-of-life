@@ -6,9 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import java.util.Arrays;
 
 /**
  * Author: Burak Kara on 24/06/15.
@@ -20,10 +21,7 @@ public class GameView extends View {
     private static final int GRID_EDGE_DEFAULT_LENGTH = 20;
     private static final int BLOCK_EDGE_DEFAULT_LENGTH = 3;
 
-    private float width;
-    private float height;
-
-    private float edge_length;
+    private float unitEdgeLengthInPixels;
 
     public static int GRID_EDGE_LENGTH;
     public static int BLOCK_EDGE_LENGTH;
@@ -48,6 +46,7 @@ public class GameView extends View {
         init(attrs);
 
         BLOCK_COUNT = (int) Math.ceil(GRID_EDGE_LENGTH / BLOCK_EDGE_LENGTH);
+
         cells = new int[GRID_EDGE_LENGTH][GRID_EDGE_LENGTH];
         blockState = new boolean[BLOCK_COUNT][BLOCK_COUNT];
 
@@ -75,23 +74,18 @@ public class GameView extends View {
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
 
-        width = getWidth();
-        height = getHeight();
+        float xUnitLength = getWidth() / GRID_EDGE_LENGTH;
+        float yUnitLength = getHeight() / GRID_EDGE_LENGTH;
 
-        Log.e(TAG, String.valueOf(width));
-
-        float xUnitLength = width / GRID_EDGE_LENGTH;
-        float yUnitLength = height / GRID_EDGE_LENGTH;
-
-        edge_length = Math.min(xUnitLength, yUnitLength);
+        unitEdgeLengthInPixels = Math.min(xUnitLength, yUnitLength);
 
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
-        //paintFill.setColor(getResources().getColor(R.color.primary_light));
-        canvas.drawColor(getResources().getColor(R.color.primary_light));
+
+        canvas.drawColor(getResources().getColor(R.color.accent));
         paintFill.setColor(getResources().getColor(R.color.primary));
         drawGrid(canvas);
 
@@ -101,10 +95,10 @@ public class GameView extends View {
         for (int i = 0; i < GRID_EDGE_LENGTH; i++) {
             for (int j = 0; j < GRID_EDGE_LENGTH; j++) {
 
-                float left = j * edge_length;
-                float top = i * edge_length;
-                float right = (j + 1) * edge_length;
-                float bottom = (i + 1) * edge_length;
+                float left = j * unitEdgeLengthInPixels;
+                float top = i * unitEdgeLengthInPixels;
+                float right = (j + 1) * unitEdgeLengthInPixels;
+                float bottom = (i + 1) * unitEdgeLengthInPixels;
 
                 canvas.drawRect(left, top,
                         right, bottom, paintStroke);
@@ -115,10 +109,6 @@ public class GameView extends View {
 
                 }
 
-                int boxNo = (i + 1) + ((j) * GRID_EDGE_LENGTH);
-                canvas.drawText(String.valueOf(boxNo), left, bottom, paintStroke);
-
-                //canvas.drawText(String.valueOf(i) + "," + String.valueOf(j), left, bottom, paintStroke);
             }
         }
     }
@@ -129,9 +119,6 @@ public class GameView extends View {
         float screenY = event.getY();
         int viewX = (int) (screenX - getLeft());
         int viewY = (int) (screenY - getTop());
-
-        //int boxNo = getBoxNo(viewX, viewY);
-        //Toast.makeText(getContext(), String.valueOf(boxNo), Toast.LENGTH_SHORT).show();
 
         int rowIndex = getRowIndex(viewY);
         int columnIndex = getColumnIndex(viewX);
@@ -147,26 +134,18 @@ public class GameView extends View {
     }
 
     public void clearCells() {
-        int zero = 0;
         for (int i = 0; i < GRID_EDGE_LENGTH; i++) {
-            for (int j = 0; j < GRID_EDGE_LENGTH; j++) {
-                cells[i][j] = 0;
-            }
+            Arrays.fill(cells[i], 0);
         }
         invalidate();
     }
 
-    private int getBoxNo(int viewX, int viewY) {
-        return (((int) (viewX / edge_length) + 1) +
-                ((int) (viewY / edge_length)) * GRID_EDGE_LENGTH);
-    }
-
     private int getRowIndex(int viewY) {
-        return (int) (viewY / edge_length);
+        return (int) (viewY / unitEdgeLengthInPixels);
     }
 
     private int getColumnIndex(int viewX) {
-        return (int) (viewX / edge_length);
+        return (int) (viewX / unitEdgeLengthInPixels);
     }
 
     public void setSeedData(int[][] seed, boolean[][] blockState) {
@@ -176,7 +155,7 @@ public class GameView extends View {
 
     private void setPaints() {
         paintStroke = new Paint();
-        paintStroke.setColor(Color.BLACK);
+        paintStroke.setColor(getResources().getColor(R.color.primary_light));
         paintStroke.setStyle(Paint.Style.STROKE);
         paintStroke.setTextSize(18);
 
@@ -189,5 +168,19 @@ public class GameView extends View {
         return cells;
     }
 
+    private void drawBoxNumbers(Canvas canvas, int i, int j, float left, float bottom) {
+        if (BuildConfig.DEBUG) {
+            int boxNo = (i + 1) + ((j) * GRID_EDGE_LENGTH);
+            canvas.drawText(String.valueOf(boxNo), left, bottom, paintStroke);
+
+            //canvas.drawText(String.valueOf(i) + "," + String.valueOf(j), left, bottom, paintStroke);
+
+        }
+    }
+
+    private int getBoxNo(int viewX, int viewY) {
+        return (((int) (viewX / unitEdgeLengthInPixels) + 1) +
+                ((int) (viewY / unitEdgeLengthInPixels)) * GRID_EDGE_LENGTH);
+    }
 
 }
