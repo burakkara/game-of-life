@@ -15,12 +15,10 @@ public class CalculationTask extends AsyncTask<Void, Void, Void> {
     private int blockRowIndex;
     private int blockColumnIndex;
 
-    private boolean[][] blockState;
-
     private CalculationListener listener;
 
     public CalculationTask(CalculationListener listener, int blockRowIndex, int blockColumnIndex, int[][] cells,
-                           int[][] temp, boolean[][] blockState) {
+                           int[][] temp) {
         this.listener = listener;
         this.blockRowIndex = blockRowIndex;
         this.blockColumnIndex = blockRowIndex;
@@ -28,12 +26,10 @@ public class CalculationTask extends AsyncTask<Void, Void, Void> {
         this.column = blockColumnIndex * GameView.BLOCK_EDGE_LENGTH;
         this.cells = cells;
         this.temp = temp;
-        this.blockState = blockState;
     }
 
     @Override
     protected Void doInBackground(Void... params) {
-        blockState[blockRowIndex][blockColumnIndex] = false;
 
         for (int i = row; i < row + GameView.BLOCK_EDGE_LENGTH; i++) {
             for (int j = column; j < column + GameView.BLOCK_EDGE_LENGTH; j++) {
@@ -42,14 +38,12 @@ public class CalculationTask extends AsyncTask<Void, Void, Void> {
                 if (sum == 3) {
                     if (cells[i][j] == 0) {
                         temp[i][j] = 1;
-                        blockState[blockRowIndex][blockColumnIndex] = true;
                     }/*else already alive*/
                 } else if (sum == 4) {
                     //keep state
                 } else {
                     if (cells[i][j] == 1) {
                         temp[i][j] = 0;
-                        blockState[blockRowIndex][blockColumnIndex] = true;
                     }/*else already dead*/
 
                 }

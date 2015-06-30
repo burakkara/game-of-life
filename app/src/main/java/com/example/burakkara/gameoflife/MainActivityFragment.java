@@ -14,7 +14,8 @@ import android.widget.Button;
 public class MainActivityFragment extends Fragment implements View.OnClickListener,
         CalculationListener {
 
-    private static final int MILLISECONDS_TILL_UPDATE = 400;
+    private static final int UPDATE_PERIOD = 300;
+    private static final String KEY_BUNDLE = "key.bundle";
 
     private GameView gameView;
     private Handler gameUpdateHandler;
@@ -23,9 +24,6 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
     int[][] cells2;
 
     private boolean isFirstArrayBuffer = false;
-
-    private boolean[][] blockState;// true, if there is change
-    private boolean[][] blockStateTemp;//if there is change true
 
     private Button buttonRun;
     private Button buttonStep;
@@ -54,18 +52,28 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         findViews(view);
         setListeners();
 
-        initArrays();
+        if (savedInstanceState == null) {
+            initArrays();
+        } else {
+            GameBundle bundle = (GameBundle) savedInstanceState.getSerializable(KEY_BUNDLE);
+            cells1 = Util.deepCopy(bundle.getCells1());
+            cells2 = Util.deepCopy(bundle.getCells1());
+        }
 
-        gameView.setSeedData(cells1, blockState);
+        gameView.setSeedData(cells1);
         gameView.invalidate();
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putSerializable(KEY_BUNDLE, new GameBundle(cells1));
     }
 
     private void initArrays() {
         cells1 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
         cells2 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
-        blockState = new boolean[GameView.BLOCK_COUNT][GameView.BLOCK_COUNT];
-        blockStateTemp = new boolean[GameView.BLOCK_COUNT][GameView.BLOCK_COUNT];
     }
 
     private void setListeners() {
@@ -132,7 +140,7 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
     final Runnable gameUpdateRunnable = new Runnable() {
         @Override
         public void run() {
-            gameView.setSeedData(isFirstArrayBuffer ? cells1 : cells2, blockState);
+            gameView.setSeedData(isFirstArrayBuffer ? cells1 : cells2);
             gameView.invalidate();
             isFirstArrayBuffer = !isFirstArrayBuffer;
             if (isRunning) {
@@ -151,16 +159,12 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
             cells2 = Util.deepCopy(cells1);
         }
 
-        blockStateTemp = blockState;
-        blockState = new boolean[GameView.BLOCK_COUNT][GameView.BLOCK_COUNT];
-
         for (int i = 0; i < GameView.BLOCK_COUNT; i++) {
             for (int j = 0; j < GameView.BLOCK_COUNT; j++) {
-                // if (blockStateTemp[i][j]) {
                 if (isFirstArrayBuffer) {
-                    new CalculationTask(this, i, j, cells2, cells1, blockState).execute();
+                    new CalculationTask(this, i, j, cells2, cells1).execute();
                 } else {
-                    new CalculationTask(this, i, j, cells1, cells2, blockState).execute();
+                    new CalculationTask(this, i, j, cells1, cells2).execute();
                 }
             }
         }
@@ -176,7 +180,9 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
     @Override
     public void onCalculationComplete() {
         if (--callCount == 0) {
-            gameUpdateHandler.postDelayed(gameUpdateRunnable, MILLISECONDS_TILL_UPDATE);
+            gameUpdateHandler.postDelayed(gameUpdateRunnable, UPDATE_PERIOD);
         }
     }
+
+
 }

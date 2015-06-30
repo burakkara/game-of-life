@@ -32,7 +32,6 @@ public class GameView extends View {
     private Paint paintFill;
 
     private int[][] cells;
-    private boolean[][] blockState;
 
     public GameView(Context context, AttributeSet attrs) {
 
@@ -48,7 +47,6 @@ public class GameView extends View {
         BLOCK_COUNT = (int) Math.ceil(GRID_EDGE_LENGTH / BLOCK_EDGE_LENGTH);
 
         cells = new int[GRID_EDGE_LENGTH][GRID_EDGE_LENGTH];
-        blockState = new boolean[BLOCK_COUNT][BLOCK_COUNT];
 
         setPaints();
 
@@ -123,13 +121,15 @@ public class GameView extends View {
         int rowIndex = getRowIndex(viewY);
         int columnIndex = getColumnIndex(viewX);
 
-        if (cells[rowIndex][columnIndex] == 1) {
-            cells[rowIndex][columnIndex] = 0;
-        } else {
-            cells[rowIndex][columnIndex] = 1;
-        }
-        invalidate();
+        if (rowIndex < cells.length && columnIndex < cells.length) {
+            if (cells[rowIndex][columnIndex] == 1) {
+                cells[rowIndex][columnIndex] = 0;
+            } else {
+                cells[rowIndex][columnIndex] = 1;
+            }
+            invalidate();
 
+        }
         return super.onTouchEvent(event);
     }
 
@@ -148,9 +148,8 @@ public class GameView extends View {
         return (int) (viewX / unitEdgeLengthInPixels);
     }
 
-    public void setSeedData(int[][] seed, boolean[][] blockState) {
+    public void setSeedData(int[][] seed) {
         cells = seed;
-        this.blockState = blockState;//invalidate();
     }
 
     private void setPaints() {
