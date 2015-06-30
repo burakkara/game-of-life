@@ -12,25 +12,27 @@ public class CalculationTask extends AsyncTask<Void, Void, Void> {
     private int row;
     private int column;
 
-    private int blockRowIndex;
-    private int blockColumnIndex;
-
     private CalculationListener listener;
 
     public CalculationTask(CalculationListener listener, int blockRowIndex, int blockColumnIndex, int[][] cells,
                            int[][] temp) {
         this.listener = listener;
-        this.blockRowIndex = blockRowIndex;
-        this.blockColumnIndex = blockRowIndex;
         this.row = blockRowIndex * GameView.BLOCK_EDGE_LENGTH;
         this.column = blockColumnIndex * GameView.BLOCK_EDGE_LENGTH;
         this.cells = cells;
         this.temp = temp;
     }
 
+
+
     @Override
     protected Void doInBackground(Void... params) {
 
+        createNextGenerationOfBlock();
+        return null;
+    }
+
+    public void createNextGenerationOfBlock() {
         for (int i = row; i < row + GameView.BLOCK_EDGE_LENGTH; i++) {
             for (int j = column; j < column + GameView.BLOCK_EDGE_LENGTH; j++) {
 
@@ -49,7 +51,6 @@ public class CalculationTask extends AsyncTask<Void, Void, Void> {
                 }
             }
         }
-        return null;
     }
 
     @Override

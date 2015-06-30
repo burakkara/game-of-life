@@ -53,11 +53,10 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         setListeners();
 
         if (savedInstanceState == null) {
-            initArrays();
+            cells1 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
         } else {
             GameBundle bundle = (GameBundle) savedInstanceState.getSerializable(KEY_BUNDLE);
-            cells1 = Util.deepCopy(bundle.getCells1());
-            cells2 = Util.deepCopy(bundle.getCells1());
+            cells1 = bundle.getCells1();
         }
 
         gameView.setSeedData(cells1);
@@ -68,12 +67,7 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putSerializable(KEY_BUNDLE, new GameBundle(cells1));
-    }
-
-    private void initArrays() {
-        cells1 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
-        cells2 = new int[GameView.GRID_EDGE_LENGTH][GameView.GRID_EDGE_LENGTH];
+        outState.putSerializable(KEY_BUNDLE, new GameBundle(gameView.getCells()));
     }
 
     private void setListeners() {
