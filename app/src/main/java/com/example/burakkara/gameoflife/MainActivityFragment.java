@@ -11,13 +11,13 @@ import android.widget.Button;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class MainActivityFragment extends Fragment implements View.OnClickListener {
+public class MainActivityFragment extends Fragment implements View.OnClickListener,
+        CalculationListener {
 
     private static final int MILLISECONDS_TILL_UPDATE = 400;
-    private static final int STEP_DELAY = 200;
 
     private GameView gameView;
-    private Handler periodicGameUpdateHandler;
+    private Handler gameUpdateHandler;
 
     int[][] cells1;
     int[][] cells2;
@@ -27,13 +27,13 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
     private boolean[][] blockState;// true, if there is change
     private boolean[][] blockStateTemp;//if there is change true
 
-    private ThreadManager manager;
-
     private Button buttonRun;
     private Button buttonStep;
     private Button buttonClear;
 
     private boolean isRunning = false;
+
+    private int callCount;
 
     public MainActivityFragment() {
     }
@@ -42,9 +42,8 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        periodicGameUpdateHandler = new Handler();
+        gameUpdateHandler = new Handler();
 
-        manager = ThreadManager.getInstance();
     }
 
     @Override
@@ -107,11 +106,17 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         }
     }
 
+    private void run() {
+        cells1 = gameView.getCells();
+        isFirstArrayBuffer = false;
+        isRunning = true;
+        calculateNextStep();
+    }
+
     private void step() {
         cells1 = gameView.getCells();
         isFirstArrayBuffer = false;
         calculateNextStep();
-        periodicGameUpdateHandler.postDelayed(gameUpdateRunnable, STEP_DELAY);
     }
 
     private void clear() {
@@ -119,37 +124,26 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         gameView.clearCells();
     }
 
-    private void run() {
-        cells1 = gameView.getCells();
-        isFirstArrayBuffer = false;
-        isRunning = true;
-        periodicGameUpdateHandler.post(periodicGameUpdateRunnable);
-    }
-
     private void stop() {
         isRunning = false;
-        periodicGameUpdateHandler.removeCallbacks(periodicGameUpdateRunnable);
+        gameUpdateHandler.removeCallbacks(gameUpdateRunnable);
     }
-
-    final Runnable periodicGameUpdateRunnable = new Runnable() {
-        @Override
-        public void run() {
-            gameView.setSeedData(isFirstArrayBuffer ? cells2 : cells1, blockState);
-            gameView.invalidate();
-            periodicGameUpdateHandler.postDelayed(periodicGameUpdateRunnable, MILLISECONDS_TILL_UPDATE);
-            calculateNextStep();
-        }
-    };
 
     final Runnable gameUpdateRunnable = new Runnable() {
         @Override
         public void run() {
-            gameView.setSeedData(isFirstArrayBuffer ? cells2 : cells1, blockState);
+            gameView.setSeedData(isFirstArrayBuffer ? cells1 : cells2, blockState);
             gameView.invalidate();
+            isFirstArrayBuffer = !isFirstArrayBuffer;
+            if (isRunning) {
+                calculateNextStep();
+            }
         }
     };
 
     private void calculateNextStep() {
+
+        callCount = (int) Math.pow(GameView.BLOCK_COUNT, 2);
 
         if (isFirstArrayBuffer) {
             cells1 = Util.deepCopy(cells2);
@@ -163,15 +157,14 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         for (int i = 0; i < GameView.BLOCK_COUNT; i++) {
             for (int j = 0; j < GameView.BLOCK_COUNT; j++) {
                 // if (blockStateTemp[i][j]) {
-                ThreadManager.startCalculation(!isFirstArrayBuffer
-                        ? new CalculationThread(i, j, cells1, cells2, blockState)
-                        : new CalculationThread(i, j, cells2, cells1, blockState));
-                //}
+                if (isFirstArrayBuffer) {
+                    new CalculationTask(this, i, j, cells2, cells1, blockState).execute();
+                } else {
+                    new CalculationTask(this, i, j, cells1, cells2, blockState).execute();
+                }
             }
         }
-        isFirstArrayBuffer = !isFirstArrayBuffer;
 
-        manager.waitForAll();
     }
 
     @Override
@@ -180,4 +173,10 @@ public class MainActivityFragment extends Fragment implements View.OnClickListen
         stop();
     }
 
+    @Override
+    public void onCalculationComplete() {
+        if (--callCount == 0) {
+            gameUpdateHandler.postDelayed(gameUpdateRunnable, MILLISECONDS_TILL_UPDATE);
+        }
+    }
 }
